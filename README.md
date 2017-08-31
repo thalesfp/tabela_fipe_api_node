@@ -29,7 +29,7 @@ URL: https://tabela-fipe-api-node.herokuapp.com
 
 ## Exemplo de requisição
 
-GET https://tabela-fipe-api.herokuapp.com/v1/carros/marcas/6/modelos/44/ano_modelos/1995-1?referencia=216
+GET https://tabela-fipe-api-node.herokuapp.com/v1/carros/marcas/6/modelos/44/ano_modelos/1995-1?referencia=216
 
 ```json
 {
