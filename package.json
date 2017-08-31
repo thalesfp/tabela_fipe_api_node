@@ -1,0 +1,16 @@
+{
+  "name": "fipe-proxy",
+  "version": "1.0.0",
+  "description": "Proxy para acesso aos dados da tabela Fipe",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "Thales Pereira (thalesfp@gmail.com)",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.15.4",
+    "request": "^2.81.0"
+  }
+}
