@@ -1,152 +1,178 @@
-var express = require('express')
-var request = require('request')
+var express = require("express");
+var request = require("request-promise");
 
-var app = express()
+var app = express();
 
-app.set('port', (process.env.PORT || 5000))
+app.set("port", process.env.PORT || 5000);
 
-const BASE_URL = 'http://veiculos.fipe.org.br'
+const BASE_URL = "http://veiculos.fipe.org.br";
 
 const tipoVeiculoEnum = {
   carros: 1,
-  motos: 2
-}
+  motos: 2,
+};
 
-const referenciaAtual = req => 216
-
-const requestOptions = url => ({
+const requestOptions = (url) => ({
   url: `${BASE_URL}/api/veiculos${url}`,
   headers: {
-    Referer: BASE_URL
+    Referer: BASE_URL,
   },
-  json: true
-})
+  json: true,
+});
 
-app.get('/referencias', (req, res) => {
-  const options = requestOptions('/ConsultarTabelaDeReferencia')
+const referencias = async () => {
+  const options = requestOptions("/ConsultarTabelaDeReferencia");
 
-  request.post(options, (error, response, body) => {
-    res.json(body)
-  })
-})
+  return await request.post(options);
+};
 
-app.get('/:tipoVeiculo/marcas', (req, res) => {
-  const { tipoVeiculo } = req.params
-  const { referencia } = req.query
+const referenciaAtual = async () => {
+  const response = await referencias();
 
-  const options = requestOptions('/ConsultarMarcas')
+  return response.reduce((prev, current) =>
+    prev.Codigo > current.Codigo ? prev : current,
+  ).Codigo;
+};
 
-  request.post(
-    {
-      ...options,
-      form: {
-        codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-        codigoTabelaReferencia: referencia || referenciaAtual()
-      }
-    },
-    (error, response, body) => {
-      res.json(body)
-    }
-  )
-})
+app.get("/referencias", async (req, res) => {
+  const response = await referencias();
 
-app.get('/:tipoVeiculo/marcas/:marca/modelos', (req, res) => {
-  const { tipoVeiculo, marca } = req.params
-  const { referencia } = req.query
+  res.json(response);
+});
 
-  const options = requestOptions('/ConsultarModelos')
+app.get("/:tipoVeiculo/marcas", async (req, res) => {
+  const { tipoVeiculo } = req.params;
+  const referencia = req.query.referencia
+    ? req.query.referencia
+    : await referenciaAtual();
+
+  const options = requestOptions("/ConsultarMarcas");
 
   request.post(
     {
       ...options,
       form: {
         codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-        codigoTabelaReferencia: referencia || referenciaAtual(),
-        codigoMarca: marca
-      }
+        codigoTabelaReferencia: referencia,
+      },
     },
     (error, response, body) => {
-      res.json(body['Modelos'])
-    }
-  )
-})
+      res.json(body);
+    },
+  );
+});
 
-app.get('/:tipoVeiculo/marcas/:marca/modelos/:modelo/ano_modelos', (req, res) => {
-    const { tipoVeiculo, marca, modelo } = req.params
-    const { referencia } = req.query
+app.get("/:tipoVeiculo/marcas/:marca/modelos", async (req, res) => {
+  const { tipoVeiculo, marca } = req.params;
+  const referencia = req.query.referencia
+    ? req.query.referencia
+    : await referenciaAtual();
 
-    const options = requestOptions('/ConsultarAnoModelo')
+  const options = requestOptions("/ConsultarModelos");
+
+  request.post(
+    {
+      ...options,
+      form: {
+        codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
+        codigoTabelaReferencia: referencia,
+        codigoMarca: marca,
+      },
+    },
+    (error, response, body) => {
+      res.json(body["Modelos"]);
+    },
+  );
+});
+
+app.get(
+  "/:tipoVeiculo/marcas/:marca/modelos/:modelo/ano_modelos",
+  async (req, res) => {
+    const { tipoVeiculo, marca, modelo } = req.params;
+    const referencia = req.query.referencia
+      ? req.query.referencia
+      : await referenciaAtual();
+
+    const options = requestOptions("/ConsultarAnoModelo");
 
     request.post(
       {
         ...options,
         form: {
           codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-          codigoTabelaReferencia: referencia || referenciaAtual(),
+          codigoTabelaReferencia: referencia,
           codigoMarca: marca,
-          codigoModelo: modelo
-        }
+          codigoModelo: modelo,
+        },
       },
       (error, response, body) => {
-        res.json(body)
-      }
-    )
-  }
-)
+        res.json(body);
+      },
+    );
+  },
+);
 
-app.get('/:tipoVeiculo/marcas/:marca/modelos/:modelo/ano_modelos/:anoModelo', (req, res) => {
-    const { tipoVeiculo, marca, modelo, anoModelo } = req.params
-    const { referencia } = req.query
-    const [ano, combustivel] = anoModelo.split('-')
+app.get(
+  "/:tipoVeiculo/marcas/:marca/modelos/:modelo/ano_modelos/:anoModelo",
+  async (req, res) => {
+    const { tipoVeiculo, marca, modelo, anoModelo } = req.params;
+    const [ano, combustivel] = anoModelo.split("-");
+    const referencia = req.query.referencia
+      ? req.query.referencia
+      : await referenciaAtual();
 
-    const options = requestOptions('/ConsultarValorComTodosParametros')
+    const options = requestOptions("/ConsultarValorComTodosParametros");
 
     request.post(
       {
         ...options,
         form: {
           codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-          codigoTabelaReferencia: referencia || referenciaAtual(),
+          codigoTabelaReferencia: referencia,
           codigoMarca: marca,
           codigoModelo: modelo,
           anoModelo: ano,
           codigoTipoCombustivel: combustivel,
-          tipoConsulta: 'tradicional'
-        }
+          tipoConsulta: "tradicional",
+        },
       },
       (error, response, body) => {
-        res.json(body)
-      }
-    )
-  }
-)
+        res.json(body);
+      },
+    );
+  },
+);
 
-app.get('/:tipoVeiculo/codigo_fipe/:codigoFipe/ano_modelos/:anoModelo', (req, res) => {
-    const { tipoVeiculo, codigoFipe, anoModelo } = req.params
-    const { referencia } = req.query
-    const [ano, combustivel] = anoModelo.split('-')
+app.get(
+  "/:tipoVeiculo/codigo_fipe/:codigoFipe/ano_modelos/:anoModelo",
+  async (req, res) => {
+    const { tipoVeiculo, codigoFipe, anoModelo } = req.params;
+    const [ano, combustivel] = anoModelo.split("-");
+    const referencia = req.query.referencia
+      ? req.query.referencia
+      : await referenciaAtual();
 
-    const options = requestOptions('/ConsultarValorComTodosParametros')
+    const options = requestOptions("/ConsultarValorComTodosParametros");
 
     request.post(
       {
         ...options,
         form: {
           codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-          codigoTabelaReferencia: referencia || referenciaAtual(),
+          codigoTabelaReferencia: referencia,
           modeloCodigoExterno: codigoFipe,
           anoModelo: ano,
           codigoTipoCombustivel: combustivel,
-          tipoConsulta: 'codigo'
-        }
+          tipoConsulta: "codigo",
+        },
       },
       (error, response, body) => {
-        res.json(body)
-      }
-    )
-  }
-)
+        res.json(body);
+      },
+    );
+  },
+);
 
-app.listen(app.get('port'), () => {
-  console.log('Node app is running on port', app.get('port'))
-})
+app.listen(app.get("port"), () => {
+  console.log("Node app is running on port", app.get("port"));
+});

@@ -8,13 +8,16 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "prettier": "prettier --config .prettierrc.yml --write index.js"
   },
   "author": "Thales Pereira (thalesfp@gmail.com)",
   "license": "MIT",
   "dependencies": {
     "express": "^4.16.4",
-    "request": "^2.88.0"
+    "prettier": "^1.15.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
   },
   "devDependencies": {
     "nodemon": "^1.18.7"
