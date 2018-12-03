@@ -13,10 +13,10 @@
   "author": "Thales Pereira (thalesfp@gmail.com)",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.15.4",
-    "request": "^2.81.0"
+    "express": "^4.16.4",
+    "request": "^2.88.0"
   },
   "devDependencies": {
-    "nodemon": "^1.11.0"
+    "nodemon": "^1.18.7"
   }
 }
