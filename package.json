@@ -4,7 +4,7 @@
   "description": "Proxy para acesso aos dados da tabela Fipe",
   "main": "index.js",
   "engines": {
-    "node": "8.4.0"
+    "node": "12.16.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,12 +14,11 @@
   "author": "Thales Pereira (thalesfp@gmail.com)",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.17.1",
-    "request": "^2.88.2",
-    "request-promise": "^4.2.2"
+    "axios": "^0.19.2",
+    "express": "^4.17.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.2",
-    "prettier": "^2.0.2"
+    "nodemon": "^2.0.3",
+    "prettier": "^2.0.4"
   }
 }

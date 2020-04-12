@@ -1,33 +1,33 @@
 var express = require("express");
-var request = require("request-promise");
+const axios = require("axios");
+const querystring = require("querystring");
 
 var app = express();
 
 app.set("port", process.env.PORT || 8080);
 
-const BASE_URL = "http://veiculos.fipe.org.br";
+const BASE_URL = "https://veiculos.fipe.org.br";
 
 const tipoVeiculoEnum = {
   carros: 1,
   motos: 2,
 };
 
-const requestOptions = (url) => ({
+const requestOptions = (url, data = {}) => ({
   url: `${BASE_URL}/api/veiculos${url}`,
   headers: {
     Referer: BASE_URL,
+    "content-type": "application/x-www-form-urlencoded",
   },
-  json: true,
+  method: "post",
+  data: querystring.stringify(data),
 });
 
-const referencias = async () => {
-  const options = requestOptions("/ConsultarTabelaDeReferencia");
-
-  return await request.post(options);
-};
+const referencias = async () =>
+  axios.request(requestOptions("/ConsultarTabelaDeReferencia"));
 
 const referenciaAtual = async () => {
-  const response = await referencias();
+  const { data: response } = await referencias();
 
   return response.reduce((prev, current) =>
     prev.Codigo > current.Codigo ? prev : current,
@@ -37,7 +37,7 @@ const referenciaAtual = async () => {
 app.get("/referencias", async (req, res) => {
   const response = await referencias();
 
-  res.json(response);
+  res.json(response.data);
 });
 
 app.get("/:tipoVeiculo/marcas", async (req, res) => {
@@ -46,20 +46,14 @@ app.get("/:tipoVeiculo/marcas", async (req, res) => {
     ? req.query.referencia
     : await referenciaAtual();
 
-  const options = requestOptions("/ConsultarMarcas");
-
-  request.post(
-    {
-      ...options,
-      form: {
-        codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-        codigoTabelaReferencia: referencia,
-      },
-    },
-    (error, response, body) => {
-      res.json(body);
-    },
+  const response = await axios.request(
+    requestOptions("/ConsultarMarcas", {
+      codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
+      codigoTabelaReferencia: referencia,
+    }),
   );
+
+  res.json(response.data);
 });
 
 app.get("/:tipoVeiculo/marcas/:marca/modelos", async (req, res) => {
@@ -68,21 +62,15 @@ app.get("/:tipoVeiculo/marcas/:marca/modelos", async (req, res) => {
     ? req.query.referencia
     : await referenciaAtual();
 
-  const options = requestOptions("/ConsultarModelos");
-
-  request.post(
-    {
-      ...options,
-      form: {
-        codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-        codigoTabelaReferencia: referencia,
-        codigoMarca: marca,
-      },
-    },
-    (error, response, body) => {
-      res.json(body["Modelos"]);
-    },
+  const response = await axios.request(
+    requestOptions("/ConsultarModelos", {
+      codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
+      codigoTabelaReferencia: referencia,
+      codigoMarca: marca,
+    }),
   );
+
+  res.json(response.data);
 });
 
 app.get(
@@ -93,22 +81,16 @@ app.get(
       ? req.query.referencia
       : await referenciaAtual();
 
-    const options = requestOptions("/ConsultarAnoModelo");
-
-    request.post(
-      {
-        ...options,
-        form: {
-          codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-          codigoTabelaReferencia: referencia,
-          codigoMarca: marca,
-          codigoModelo: modelo,
-        },
-      },
-      (error, response, body) => {
-        res.json(body);
-      },
+    const response = await axios.request(
+      requestOptions("/ConsultarAnoModelo", {
+        codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
+        codigoTabelaReferencia: referencia,
+        codigoMarca: marca,
+        codigoModelo: modelo,
+      }),
     );
+
+    res.json(response.data);
   },
 );
 
@@ -121,25 +103,19 @@ app.get(
       ? req.query.referencia
       : await referenciaAtual();
 
-    const options = requestOptions("/ConsultarValorComTodosParametros");
-
-    request.post(
-      {
-        ...options,
-        form: {
-          codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-          codigoTabelaReferencia: referencia,
-          codigoMarca: marca,
-          codigoModelo: modelo,
-          anoModelo: ano,
-          codigoTipoCombustivel: combustivel,
-          tipoConsulta: "tradicional",
-        },
-      },
-      (error, response, body) => {
-        res.json(body);
-      },
+    const response = await axios.request(
+      requestOptions("/ConsultarValorComTodosParametros", {
+        codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
+        codigoTabelaReferencia: referencia,
+        codigoMarca: marca,
+        codigoModelo: modelo,
+        anoModelo: ano,
+        codigoTipoCombustivel: combustivel,
+        tipoConsulta: "tradicional",
+      }),
     );
+
+    res.json(response.data);
   },
 );
 
@@ -152,24 +128,18 @@ app.get(
       ? req.query.referencia
       : await referenciaAtual();
 
-    const options = requestOptions("/ConsultarValorComTodosParametros");
-
-    request.post(
-      {
-        ...options,
-        form: {
-          codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
-          codigoTabelaReferencia: referencia,
-          modeloCodigoExterno: codigoFipe,
-          anoModelo: ano,
-          codigoTipoCombustivel: combustivel,
-          tipoConsulta: "codigo",
-        },
-      },
-      (error, response, body) => {
-        res.json(body);
-      },
+    const response = await axios.request(
+      requestOptions("/ConsultarValorComTodosParametros", {
+        codigoTipoVeiculo: tipoVeiculoEnum[tipoVeiculo],
+        codigoTabelaReferencia: referencia,
+        modeloCodigoExterno: codigoFipe,
+        anoModelo: ano,
+        codigoTipoCombustivel: combustivel,
+        tipoConsulta: "codigo",
+      }),
     );
+
+    res.json(response.data);
   },
 );
 
