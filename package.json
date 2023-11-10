@@ -14,7 +14,7 @@
   "author": "Thales Pereira (thalesfp@gmail.com)",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.2",
+    "axios": "^1.6.0",
     "express": "^4.18.2"
   },
   "devDependencies": {
